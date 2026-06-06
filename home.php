@@ -8,8 +8,6 @@
 *
 * Full licence terms are available in the LICENSE file.
   */
-
-
 <!DOCTYPE html>
 <html lang="en-GB">
 <head>

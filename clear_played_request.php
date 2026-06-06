@@ -8,8 +8,6 @@
 *
 * Full licence terms are available in the LICENSE file.
   */
-
-
 <?php
 header('Content-Type: application/json');
 
