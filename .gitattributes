@@ -1,0 +1,3 @@
+*.php linguist-language=PHP
+.htaccess linguist-vendored
+*.json linguist-language=JSON
