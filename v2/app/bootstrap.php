@@ -27,3 +27,8 @@ function site_settings(PDO $db,array $defaults=[]):array {
  $rows=$db->query('SELECT setting_key,setting_value FROM site_settings')->fetchAll(PDO::FETCH_KEY_PAIR);
  return array_replace($defaults,$rows);
 }
+
+function notify_user(PDO $db,int $id,string $message,string $link='dashboard.php'):void { $s=$db->prepare('INSERT INTO notifications(user_id,message,link) VALUES (?,?,?)');$s->execute([$id,mb_substr($message,0,255),$link]); }
+function notify_managers(PDO $db,string $kind,string $message,string $link='dashboard.php'):void {
+ $role=$kind==='dj'?'radio_manager':'events_manager';$s=$db->prepare("SELECT id FROM users WHERE is_active=1 AND role IN ('owner','admin',?)");$s->execute([$role]);foreach($s->fetchAll() as $u)notify_user($db,(int)$u['id'],$message,$link);
+}
