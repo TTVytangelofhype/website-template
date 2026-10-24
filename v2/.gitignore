@@ -1,0 +1,5 @@
+/config.php
+/.installed
+/install-token.txt
+/vendor/
+/.env

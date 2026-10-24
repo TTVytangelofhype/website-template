@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS reminder_deliveries (
+ booking_id BIGINT UNSIGNED NOT NULL,
+ reminder_type VARCHAR(30) NOT NULL,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY(booking_id, reminder_type),
+ FOREIGN KEY(booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
