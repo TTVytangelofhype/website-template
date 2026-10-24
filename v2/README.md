@@ -245,3 +245,6 @@ Compare before merging: https://github.com/TTVytangelofhype/website-template/com
 ---
 
 **Maintainer note:** The Frank page, owner log, bootstrap denial hook, and migration were committed to `main`. Test them together on staging, configure a daily log-purge cron job, and ensure your privacy notice describes the logging.
+
+## V2.1 classic hotel visual refresh
+The homepage, radio/events panels, forms, calendar and staff dashboard now share a classic pixel-hotel-inspired appearance: blue hotel navigation, warm cream panels, gold buttons, thick borders and the built-in CSS hotel illustration. The existing PHP, MySQL, roles, bookings, Discord verification and audit code remain in place. The redesign uses local CSS, no external copyrighted Habbo sprites or fonts. Re-upload `public/style.css`, `public/index.php` and `public/dashboard.php` together and clear your browser cache with Ctrl+F5. Test on mobile and staging before public launch.
