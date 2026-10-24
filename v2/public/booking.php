@@ -13,7 +13,7 @@ if($action==='create'){
  if(!$start || !$end || $title==='' || mb_strlen($title)>120 || mb_strlen($details)>2000 || $start<=new DateTimeImmutable('now',new DateTimeZone('Europe/London')) || $end<=$start || $end->getTimestamp()-$start->getTimestamp()>21600) back('Invalid booking details (maximum duration 6 hours).');
  $s=$pdo->prepare("INSERT INTO bookings (title,kind,host_id,start_at,end_at,details) VALUES (?,?,?,?,?,?)");
  $s->execute([$title,$kind,$me['id'],$start->format('Y-m-d H:i:s'),$end->format('Y-m-d H:i:s'),$details]);
- audit($pdo,$me['id'],'booking.created',['id'=>(int)$pdo->lastInsertId(),'kind'=>$kind]);back('Booking submitted for approval.');
+ audit($pdo,$me['id'],'booking.created',['id'=>(int)$pdo->lastInsertId(),'kind'=>$kind]);notify_managers($pdo,$kind,'New booking awaiting review','dashboard.php');back('Booking submitted for approval.');
 }
 $id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT);
 if(!$id) back('Invalid booking.');
@@ -35,6 +35,6 @@ try {
  } elseif($action==='reject' && $booking['status']==='pending') {$pdo->prepare("UPDATE bookings SET status='rejected' WHERE id=?")->execute([$id]);}
  elseif($action==='cancel' && in_array($booking['status'],['pending','approved'],true)) {$pdo->prepare("UPDATE bookings SET status='cancelled' WHERE id=?")->execute([$id]);}
  else {$pdo->rollBack();back('Booking cannot be changed from its current status.');}
- audit($pdo,$me['id'],'booking.'.$action,['id'=>$id]);
+ audit($pdo,$me['id'],'booking.'.$action,['id'=>$id]);notify_user($pdo,(int)$booking['host_id'],'Your booking '.$booking['title'].' was '.$action.'d.','dashboard.php');
  $pdo->commit();back('Booking updated.');
 } catch(Throwable $e) {if($pdo->inTransaction())$pdo->rollBack();error_log($e->getMessage());http_response_code(500);exit('Booking update failed.');}
