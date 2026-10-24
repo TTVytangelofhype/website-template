@@ -41,7 +41,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
    $db=new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4",$dbUser,$dbPass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);
    $tableExists=$db->query("SHOW TABLES LIKE 'users'")->fetchColumn();
    if($tableExists){throw new RuntimeException('This database already has a users table. Use a clean database for a new installation.');}
-   foreach(['schema.sql','002_radio.sql','003_settings.sql','005_applications.sql','006_notifications.sql','007_reminders.sql','008_security.sql'] as $sqlFile){
+   foreach(['schema.sql','002_radio.sql','003_settings.sql','005_applications.sql','006_notifications.sql','007_reminders.sql','008_security.sql','009_access_denials.sql'] as $sqlFile){
     $sql=file_get_contents($root.'/database/'.$sqlFile);
     foreach(explode(';',$sql) as $statement){if(trim($statement)!=='')$db->exec($statement);}
    }
