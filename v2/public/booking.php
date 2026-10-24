@@ -35,6 +35,6 @@ try {
  } elseif($action==='reject' && $booking['status']==='pending') {$pdo->prepare("UPDATE bookings SET status='rejected' WHERE id=?")->execute([$id]);}
  elseif($action==='cancel' && in_array($booking['status'],['pending','approved'],true)) {$pdo->prepare("UPDATE bookings SET status='cancelled' WHERE id=?")->execute([$id]);}
  else {$pdo->rollBack();back('Booking cannot be changed from its current status.');}
- audit($pdo,$me['id'],'booking.'.$action,['id'=>$id]);notify_user($pdo,(int)$booking['host_id'],'Your booking '.$booking['title'].' was '.$action.'d.','dashboard.php');
+ audit($pdo,$me['id'],'booking.'.$action,['id'=>$id]);notify_user($pdo,(int)$booking['host_id'],'Your booking '.$booking['title'].' was '.(['approve'=>'approved','reject'=>'rejected','cancel'=>'cancelled'][$action]??'updated').'.','dashboard.php');
  $pdo->commit();back('Booking updated.');
 } catch(Throwable $e) {if($pdo->inTransaction())$pdo->rollBack();error_log($e->getMessage());http_response_code(500);exit('Booking update failed.');}
