@@ -50,7 +50,7 @@ You do **not** need to edit `config.php` manually for a fresh installation.
 
 **After installation:** Restrict permissions on the private application directory, keep `config.php` outside public web access, use HTTPS and test the entire installation on a staging domain before launching.
 
-> **Frank migration note:** The current installer in `main` imports SQL files through `008_security.sql`. If you want the newer `009_access_denials.sql` table, import it once in phpMyAdmin or update the installer's SQL import list *before* running a fresh install.
+> **Frank migration note:** Fresh installations now include `009_access_denials.sql` automatically. Existing installs must import it once through phpMyAdmin before using the denied-access logging.
 
 ## 🎧 Staff panel and ranks
 
@@ -79,12 +79,7 @@ A Discord role is a **second gate**, not a substitute for the local account and 
 
 The planned Habbo-inspired Frank stop screen explains that a staff member cannot enter without the required Discord role. Owners can review denied access attempts including **date/time, account, IP address, user agent, reason and requested page**.
 
-**Current main-branch verification:** `v2/database/009_access_denials.sql` exists, but the following expected patch files were **not found at their expected GitHub paths** during this README update:
-
-- `v2/app/access-denial.php`
-- `v2/public/access-denied.php`
-
-Do not assume the Frank redirect or denial log is active just because its SQL file is present. If you uploaded the patch to your web host rather than GitHub, follow the [Frank integration instructions](v2/README.md#f-connect-the-frank-security-patch) and verify the PHP files, logging hook, database table and owner audit page on staging.
+**Frank is now integrated in `main`:** `v2/app/access-denial.php`, `v2/public/access-denied.php`, `v2/public/access-log.php` and `v2/cron/purge-access-logs.php` are committed, and the Discord role gate logs and redirects denied users. Existing installs must import `009_access_denials.sql` once; fresh installs import it automatically. Test the complete flow on staging before going live.
 
 For existing logged-in staff, the separate **Session Audit** system stores a hashed session identifier, IP address, browser, start time, last-seen time and revocation state. **Only the owner should see IP security records.** IP addresses can be personal data; disclose the logging in your privacy notice and apply sensible retention/deletion.
 
