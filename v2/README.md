@@ -1,81 +1,247 @@
-# Habbo Fansite V2 — Hybrid (developer preview)
+# Habbo Fansite V2 — Installation & Help Centre
 
-Unofficial Habbo fansite; not endorsed by Habbo or Sulake. Branch `habbo-fansite-v2` preserves legacy `main`.
+> **Developer preview / staging only.** This is an independent Habbo-inspired fansite, not affiliated with or endorsed by Habbo or Sulake. Develop on `habbo-fansite-v2`; do not replace the original `main` site until installation and security tests pass.
 
-## Easy first-time installation (no config.php editing)
-1. Use PHP 8.3+ with PDO MySQL and mbstring and a MySQL/MariaDB server.
-2. Upload the **contents of v2**, keeping `app/`, `database/` and configuration outside the public document root. Point the HTTPS domain or staging subdomain document root at `v2/public`.
-3. In cPanel **MySQL Databases**, create a **new, empty database** and database user, grant the user database permissions, and note the database name, username and password.
-4. Browse to `https://your-fansite.example/setup.php`. The installer automatically creates `v2/install-token.txt` in the **private parent v2 directory**. Read this one-time key using cPanel File Manager and enter it into the installer.
-5. Fill out database connection, **fansite name**, **tagline**, optional HTTPS radio stream, and **owner username/password** (14+ characters).
-6. Click **Create my fansite**. The installer imports both SQL files, creates the first owner, writes a private `config.php`, writes `.installed`, deletes the installation key, and signs in as owner.
-7. Visit `/index.php` for the public site or `/login.php` for staff. Remove write permission from the application directory after installation. Retain a safe backup of config.php.
+A PHP/MySQL fansite with a public hotel-style homepage, radio and song requests, a booking calendar, DJ/event rota, staff applications, owner settings, staff administration, notifications, Discord integration, and security logs.
 
-**Security:** The installation token is required to prevent unauthorised first-owner creation on a public server. Do not upload the `v2` directory into a publicly served parent folder with unrestricted access. Setup refuses to run if `config.php` or `.installed` exists. No existing installs are migrated automatically. Keep `main` deployed until staging tests pass. Do not use a populated production database for a new installation.
+## Start here: which setup do you need?
 
-## Features included
-- Habbo-inspired homepage, monthly calendar, DJ radio stream and song request form
-- Owner and staff authentication, role-controlled DJ/event booking approvals, audit logs
-- MySQL-backed song request moderation and booking data
-- Browser-based installation wizard
+| Situation | Do this |
+|---|---|
+| Brand-new installation | Follow **A. Install from scratch** |
+| Already running V2 | Follow **B. Update an existing installation** |
+| Discord panel access is denied | Follow **D. Discord roles and access** and **H. Troubleshooting** |
+| Frank ZIP uploaded manually | Follow **F. Connect the Frank security patch** |
+| Cron reminders not running | Follow **G. Scheduled jobs** |
+| Completely stuck | Collect the safe diagnostics in **J. Asking for help** |
 
-## Remaining work
-This is not production audited. Login throttling, robust multi-process booking conflict locks, DST edge handling, staff account/role editor, spam mitigation, recurring booking features and live radio metadata integration are pending.
+## A. Install from scratch (cPanel, beginner-friendly)
 
-## Owner settings after installation
-Log into `/login.php` as the owner and open **Fansite Settings** from the dashboard. Set fansite name, tagline, optional HTTPS logo URL and radio stream, and select Classic Hotel, Neon Radio or Midnight theme. Saved options live in MySQL `site_settings`, not in `config.php`. The installer creates this table on new installs.
+### 1. Hosting requirements
+- HTTPS website or staging subdomain; PHP **8.3+** recommended.
+- MySQL/MariaDB, PHP extensions **pdo_mysql**, **mbstring**, **curl** (for Discord), and PHP sessions.
+- cPanel (or equivalent) with **MySQL Databases**, **File Manager**, **phpMyAdmin**, and **Cron Jobs**.
+- A private directory outside the public web root.
 
-**Existing V2 developer-preview installs:** import `database/003_settings.sql` once through phpMyAdmin before opening the homepage or settings panel. This update does not touch legacy `main`.
+Recommended layout:
 
-## Staff Management
-Owners can now use **Staff Management** in the dashboard to create accounts, choose staff roles, suspend/reactivate members and reset passwords. Account changes increment a session version, invalidating old login sessions. The owner account is protected against modification through the panel.
+```text
+/home/ACCOUNT/habbo-v2/             ← private app root
+├── app/
+├── cron/
+├── database/
+├── public/                         ← ONLY document root
+│   ├── index.php
+│   ├── setup.php
+│   ├── login.php
+│   └── ...
+├── config.php                      ← generated by installer; private
+├── .installed                      ← generated after installation
+└── install-token.txt               ← temporary, removed after setup
+```
 
-For **new installations**, the primary schema includes `is_active` and `session_version`. For **existing V2 installs created before this update**, run `database/004_staff.sql` once using phpMyAdmin before deploying the updated authentication code. Do **not** run 004 on a fresh installation whose schema already contains those columns. Until you run the migration, the new login will fail. Temporary passwords must be shared securely; self-service password changes and email invites are future work.
+**Do not set the domain root to the whole repository or to `habbo-v2/`.** In cPanel, point your staging domain's document root specifically to `.../habbo-v2/public`. If your host cannot change document roots, contact the host rather than exposing the private folders.
 
-## Staff applications and rota (Phase 5)
-- Public `apply.php` accepts DJ/Event Host applications. It contains a CSRF token, basic honeypot and session cooldown. Apply additional IP-based abuse protection before a large public launch.
-- `applications.php` shows pending applications to owner/admin and the relevant radio/events manager. Accepting an application does **not** grant an account or login privileges. Owner can create staff credentials separately in Staff Management.
-- `rota.php` shows the current Monday–Sunday staff schedule with approved and pending booking status. Public calendar continues to show approved bookings only.
-- Fresh installations import `005_applications.sql` automatically. Existing V2 installs must run `database/005_applications.sql` through phpMyAdmin once.
+### 2. Create database and credentials
+1. Open **cPanel → MySQL Databases** (sometimes called **MySQL Database Wizard**).
+2. Create a **new empty** database, e.g. `ACCOUNT_fansite`.
+3. Create a dedicated database user with a strong password.
+4. Add the user to this database with permissions required to create and update the tables.
+5. Keep the exact database name, username, password, and host (usually `localhost`). cPanel often prefixes names with your hosting username.
 
-## Notifications and shift changes (Phase 6)
-- In-app notification inbox for staff, including booking decisions and manager alerts on new booking requests.
-- Staff can request cancellation of an approved upcoming shift; managers review the cancellation before it is removed from the approved rota.
-- New installs import `006_notifications.sql`. Existing V2 installs should apply it once **before deploying these PHP updates**.
-- Notifications currently remain **inside the site**: email/Discord delivery and automatic timed reminders are not implemented yet.
-- Staff can now select a date/time on the rota page to prefill a booking request on the dashboard. Drag/drop editing, free-slot conflict highlighting, email/Discord delivery and timed reminders remain future milestones.
+**Do not reuse a live database containing important tables. Do not upload database credentials to GitHub.**
 
-## Scheduled reminders (Phase 7)
-The private PHP CLI task at `v2/cron/reminders.php` creates one in-app notification per approved booking around 30 minutes before its start. It has a uniqueness constraint to avoid repeated alerts. Set up a cPanel cron job to run every five minutes, for example:
+### 3. Upload files
+Upload the **contents of `v2/`** to your private fansite folder, preserving the structure. Make sure `public/` is the actual HTTPS document root. It is fine for the files to be named `habbo-v2/` or `v2/` on the server as long as the relative layout is retained.
 
-`*/5 * * * * /usr/local/bin/php /home/ACCOUNT/private/v2/cron/reminders.php`
+### 4. Open the installer
+Visit `https://YOUR-SITE.example/setup.php`. On first visit, the installer creates a random one-time key at `install-token.txt` in the **private app root**. Read that file through cPanel File Manager, and copy its key into the installer.
 
-Replace both executable and path to match your hosting provider. Keep `v2/cron` outside the public document root. New installs include `007_reminders.sql`; existing installs must import it once before enabling the task. Discord/webhook delivery is **not yet included** and will require a separate opt-in integration. This code requires staging verification with MySQL, PHP CLI, and the host timezone.
+Fill in:
+- Database host, name, user and password.
+- Your fansite name and tagline.
+- Optional HTTPS radio stream URL.
+- Owner username and strong password (**at least 14 characters**).
 
-## Phase 8: booking concurrency and Discord reminders
-Booking approvals now acquire a stable owner-row lock **before** inspecting a booking or approved overlaps, serialising concurrent approvals in the InnoDB transaction. The app continues to allow only one approved booking per type for overlapping times (DJ and event calendars are independent). This does not yet address all DST boundaries or room-specific scheduling.
+Select **Create my fansite**. The installer creates the tables, owner user and private configuration file, then locks itself. After setup, open `/login.php` for staff or `/index.php` for the public site.
 
-The owner can optionally enter a Discord webhook URL at **Fansite Settings** and explicitly enable reminders. The private `cron/reminders.php` worker delivers a short message approximately 30 minutes ahead, only for approved bookings, with mentions disabled. The webhook is stored in the private database, should be treated as a secret, and never belongs in source control or screenshots. Discord delivery is best-effort: failures are logged and cannot be retried with the current once-only reminder key. If you need guaranteed delivery, use a persistent outbox in a future milestone.
+**The current installer imports** `schema.sql`, `002_radio.sql`, `003_settings.sql`, `005_applications.sql`, `006_notifications.sql`, `007_reminders.sql`, and `008_security.sql`. **If `009_access_denials.sql` has been uploaded**, the existing installer still needs that filename added to its SQL import array for new installs. Alternatively import it manually through phpMyAdmin after installation. A database file merely sitting on disk does not automatically run.
 
-## Staging validation before release
-- Run new installation against a fresh MySQL database: check config and installation lock; confirm setup cannot be accessed again.
-- Confirm the owner can sign in, save branding, create staff and view applications.
-- Confirm suspended users and users with changed roles lose access immediately.
-- Test two managers approving simultaneous overlapping DJ bookings and confirm only one is approved.
-- Verify members cannot access staff management or another manager's application queues.
-- Approve a DJ booking and confirm its appearance on the public calendar; pending bookings should be private.
-- Test shift cancellation workflow and manager approval.
-- Schedule an approved booking for 30 minutes ahead, run private CLI cron twice, and confirm exactly one in-site reminder.
-- With Discord turned **off**, confirm no webhook requests are sent. Enable and test in a private Discord channel only.
-- Confirm that DST changeover days and concurrent installer requests are covered before making the app public.
+### 5. Secure the installation
+- Check `/setup.php` refuses subsequent installation attempts; remove or block that endpoint after setup if possible.
+- Keep `config.php`, `.installed`, `install-token.txt`, and `cron/` outside the public root.
+- Remove write permission from the private application folder once installed; keep private backups.
+- Enforce HTTPS and back up the MySQL database and configuration before updating.
+- Do a test login, booking and logout on staging before adding real staff.
 
-This milestone was committed remotely; these end-to-end checks still require a deployed PHP/MySQL staging environment.
+## B. Update an existing V2 installation
 
-## Phase 9: Discord rank gate and owner session security
-New installs include `008_security.sql`. **For existing V2 deployments import this migration before deploying these files**, or logins will fail.
+**Backup the whole V2 directory and export its MySQL database first.** Do not rerun the installer or import `schema.sql` over an existing database. Update only on `habbo-fansite-v2` and test before promoting it.
 
-Staff login records a session hash (never the raw session cookie), direct client IP from `REMOTE_ADDR`, user agent, login timestamp and last-seen time. The owner can review and revoke sessions from **Session Audit**. Use a trusted web server or Cloudflare proxy configuration when determining real visitor addresses; do not blindly trust `X-Forwarded-For`. IP addresses are personal data: restrict access to the owner, publish a privacy notice, establish a retention limit and purge old records.
+Apply **only migrations you have not already applied**, in order:
 
-**Discord rank enforcement is optional and disabled by default.** The owner must create a Discord application and bot, add the bot to the selected server, supply Discord OAuth client ID/secret, bot token, guild ID, required role ID and exactly registered HTTPS OAuth redirect URI (usually `https://YOUR_DOMAIN/discord-callback.php`). The OAuth flow requests `identify` and binds Discord IDs to local accounts after a successful bot-based member role lookup. Connect your own account first from Site Settings, then enable enforcement. Once enabled, protected endpoints recheck Discord membership periodically (5-minute cache in PHP session) and fail closed when the Discord API cannot confirm the role. Existing local roles still determine permissions; having the Discord role alone does not create an account or confer owner permissions.
+| SQL file | Purpose | Existing-install action |
+|---|---|---|
+| `database/002_radio.sql` | Song requests | Import once if missing |
+| `database/003_settings.sql` | Public site settings | Import once if missing |
+| `database/004_staff.sql` | Account status + session versions | Import **only** on older schemas without these columns |
+| `database/005_applications.sql` | Staff applications | Import once if missing |
+| `database/006_notifications.sql` | Notifications + cancellation requests | Import once if missing |
+| `database/007_reminders.sql` | Reminder deduplication | Import once if missing |
+| `database/008_security.sql` | Discord ID and staff sessions | Import once if missing |
+| `database/009_access_denials.sql` | Denied access audit | Import once if missing |
 
-**Limitations and release blockers:** Bot token and OAuth client secret currently live in private database settings, visible to the owner: secure MySQL backups and consider encrypted-at-rest credential storage or file-based environment secrets before production. Role verification may allow up to five minutes of access after removal due to session caching. Owner account recovery requires securely disabling `discord_access_enabled` in the database if the bot becomes unavailable. The session viewer lacks automatic retention cleanup. Login brute-force rate-limiting, MFA and end-to-end Discord OAuth/role tests are still pending; do not call this production-hardened yet. Keep all installation/config files outside public web root and enforce HTTPS.
+To import: **cPanel → phpMyAdmin → select your fansite database → Import → choose the specific SQL file → Go**. `004_staff.sql` uses `ALTER TABLE` and **must not be rerun** if its columns already exist. New installations already define these columns in `schema.sql`.
+
+After migration upload updated PHP files, verify `config.php` remains intact, and test sign-in and owner settings. Never upload the example config over a real config.
+
+## C. The staff panel: roles and bookings
+
+Log in at `/login.php`. Owners can open **Staff Management**, **Fansite Settings** and **Session Audit**. They can create staff accounts, assign roles, suspend staff and reset passwords.
+
+The local fansite roles are `owner`, `admin`, `radio_manager`, `events_manager`, `dj`, `event_host`, and `member`. The local role controls *what* a user may do after login. The optional Discord role requirement is a **second access gate**; a Discord role alone never creates a fansite account or grants owner rights.
+
+DJ and event-host users request bookings from the staff dashboard. Managers approve or reject them; only approved shows appear on the public calendar. The rota lists shifts, and hosts can request cancellation for manager review. Public applications are at `/apply.php`; accepting an application does **not** create an account.
+
+The owner changes the site name, tagline, logo URL, colour theme, radio URL and Discord settings through **Fansite Settings** rather than editing `config.php`.
+
+## D. Discord roles and access
+
+**Discord access enforcement is OFF by default.** A webhook alone cannot verify a Discord member's role. You need a Discord application with an OAuth client and a bot that can query membership in the intended server.
+
+### Configure your application
+1. Visit the official [Discord Developer Portal](https://discord.com/developers/applications) and create an application.
+2. Record the **Application / Client ID**.
+3. Under OAuth2, register the **exact HTTPS redirect URI**, for example `https://YOUR-SITE.example/discord-callback.php`. The URI must exactly match the fansite settings, including its hostname and path.
+4. Generate a client secret and a bot token in the application's settings. **Keep both secret. Never post them in chat, Discord, GitHub issues, screenshots, or public files.**
+5. Invite the bot to the correct Discord server with the permissions needed to inspect its membership. This integration uses Discord's guild-member REST endpoint with the bot token.
+6. In Discord enable Developer Mode, then copy the **server (guild) ID** and the **required staff role ID**. Do not confuse the role ID with a channel ID.
+7. In **Fansite Settings**, enter Client ID, Client Secret, Redirect URI, Bot Token, Guild ID and Required Role ID.
+8. Save settings with **Enforce required Discord role** left unchecked.
+9. Connect **your own Discord account first** using the link on the settings page. Confirm the bot can verify you have that role, and test a separate test account.
+10. Only then enable role enforcement. When the role check fails the intended policy is **deny by default**.
+
+When enforcement is enabled, existing protected endpoints check the linked Discord membership periodically (currently a **five-minute verification cache**). Removing a role may therefore take up to five minutes to affect an existing session. Discord outages can prevent access, including owner access: have a documented secure database recovery procedure and a backup before enabling it.
+
+**Important:** The existing OAuth connection page uses a valid local login first. If you have no Discord ID linked yet, staff are redirected to `discord-connect.php`; the Frank stop page is for a role verification failure once this flow is wired in.
+
+## E. Logging staff sessions and IP addresses
+
+`staff_sessions` records a session hash (not the raw cookie), user, network IP from `REMOTE_ADDR`, browser user agent, start time, last-seen time and revocation state. The **owner-only Session Audit** page displays these values and provides a revoke action.
+
+Do not trust client-supplied `X-Forwarded-For` IPs automatically. If using Cloudflare or another proxy, only configure original visitor IP restoration at a *trusted server/proxy* layer. Otherwise `REMOTE_ADDR` may be the proxy address.
+
+IP addresses can constitute personal data. Add a privacy notice explaining what is logged, why, who may view it and when it is erased. Denied access logs and session logs have distinct retention policies; the supplied denied-log cleanup does **not** automatically delete `staff_sessions`.
+
+## F. Connect the Frank security patch
+
+If you manually uploaded `frank-access-v2-integration.zip`, verify the files are at the correct locations under `v2/`:
+
+```text
+v2/app/access-denial.php
+v2/public/access-denied.php
+v2/public/access-log.php
+v2/database/009_access_denials.sql
+v2/cron/purge-access-logs.php
+```
+
+**Uploading is not the same as activating it.** Check the uploaded files and perform the integration steps in the ZIP's `INTEGRATION.md`.
+
+1. Import `009_access_denials.sql` on existing installs.
+2. In `v2/app/bootstrap.php`, just after `require_once __DIR__.'/discord.php';`, add `require_once __DIR__.'/access-denial.php';`.
+3. In `require_login()`, replace the existing plain-text Discord-role-denied response with:
+   ```php
+   if (!discord_authorised($pdo, $config, $did)) {
+       unset($_SESSION['discord_verified_at']);
+       deny_panel_access($pdo, (int)$me['id'], 'discord_role_unverified');
+   }
+   ```
+4. On the owner-only dashboard menu add a link to `access-log.php`.
+5. For future **new installs**, add `'009_access_denials.sql'` to the installer's SQL filename list (or import separately after initial installation).
+6. Visit a protected page using a test account missing the role; verify it redirects to Frank. Then use the owner account to inspect `/access-log.php` and confirm the date, time and IP appear.
+7. Schedule the daily cleanup job described below.
+
+**Do not simply redirect to Frank from `access-denied.php` back to itself.** The Frank page should be a standalone 403 page that does not call `require_login()`, to avoid redirect loops.
+
+A Frank page may use original *pixel-inspired* styling. Do not imply the page is officially affiliated with Habbo. Record role-check failures as unverified; an API outage is not proof a user lacks the role.
+
+## G. Scheduled jobs (cPanel cron)
+
+Cron scripts must live outside the public document root and run under the server's PHP CLI interpreter.
+
+### 30-minute DJ/event reminders
+In **cPanel → Cron Jobs**, create a job every five minutes:
+
+```cron
+*/5 * * * * /usr/local/bin/php /home/ACCOUNT/habbo-v2/cron/reminders.php
+```
+
+Replace the PHP executable and `ACCOUNT` / folder with your actual hosting values. The reminder script creates an in-app alert approximately 30 minutes before approved shifts. Optional Discord webhook reminders can be enabled from Fansite Settings; first test the webhook in a private Discord channel. Webhook delivery is best effort; failed sends may not retry automatically.
+
+### Delete old denied access logs
+Create a second job running once daily:
+
+```cron
+15 3 * * * /usr/local/bin/php /home/ACCOUNT/habbo-v2/cron/purge-access-logs.php
+```
+
+The supplied cleanup deletes denied-access records older than 30 days. It does **not** delete staff session records.
+
+If cron does nothing, use cPanel's path to PHP CLI (which may differ from `/usr/local/bin/php`), check permissions, and inspect the host's cron or PHP error logs. Test against a staging booking before enabling for real shifts.
+
+## H. Troubleshooting quick reference
+
+| Problem | Likely cause | What to try |
+|---|---|---|
+| `/setup.php` is 404 | Wrong document root or file missing | Confirm `public/setup.php` exists beneath the domain root |
+| `setup.php` says already configured | `config.php` or `.installed` exists | For an existing site use login, **not** the installer |
+| Database connection fails | Wrong DB name/username/password/host or missing grants | Recheck full cPanel-prefixed names and assigned privileges |
+| SQL says column already exists | Migration rerun | Stop; inspect current schema before importing again |
+| Fatal error about `staff_sessions` | `008_security.sql` not imported | Back up database, then import the missing migration once |
+| Fatal error about `panel_access_denials` | `009_access_denials.sql` missing | Import it once through phpMyAdmin |
+| No Frank screen, only plain text 403 | Bootstrap denied-access hook not integrated | Follow Section F steps 2–3 |
+| Discord OAuth redirects fail | Redirect URI mismatch | Make callback URI exactly match Discord Developer Portal |
+| Discord keeps denying a valid DJ | Bot not in guild, wrong role/guild ID, stale cache, API unavailable | Check bot membership, numeric IDs, reconnect, retry after cache expiry |
+| Owner locked out by Discord | Role or bot check failed | Recover from a backup or securely set `discord_access_enabled` to `0` in the private `site_settings` table; investigate before re-enabling |
+| User sees no DJ bookings | Not yet approved or missing local role | Review booking status and staff role |
+| Logo/radio not displaying | Bad HTTPS URL, remote server blocks embed, or incompatible media | Test source URL directly and inspect browser console |
+| Reminder does not fire | Cron not running, SQL table missing, wrong date, or booking not approved | Check Cron Jobs, `007_reminders.sql`, PHP path and booking status |
+| Owner log is empty | No denied events, migration missing, or missing logging hook | Test a denied role on staging and inspect SQL rows |
+| Logged IP looks like Cloudflare | Reverse-proxy IP not restored at trusted server | Ask the host how to configure trusted proxy address restoration |
+
+## I. Security and privacy checklist
+
+Before any public beta:
+- HTTPS, private config and application files, secure backups, minimum database privileges.
+- Restrict owner-only endpoints **server-side**, not merely by hiding menu links.
+- Verify Discord OAuth state, member-role checks and revocation handling.
+- Never share bot tokens, OAuth secrets, webhook URLs or raw user IP logs.
+- Add login rate limiting, MFA for owners, CSRF checks and sensible session expiry.
+- Confirm Frank's page is shown on denied verification without disclosing internal errors.
+- Include a clear privacy notice and data retention schedule for session and denial logs.
+- Test role removal, suspended accounts, session revocation, installer lockout, overlapping bookings and cron jobs.
+- Run PHP syntax validation and real PHP/MySQL/browser testing on staging.
+
+**This project is not yet independently security-audited.** No web application is guaranteed immune to unauthorised access; do not market it as fully secure before these checks.
+
+## J. If you get stuck: what to send when asking for help
+
+Open a GitHub issue in the repository, or ask for help with the following **non-sensitive** information:
+
+1. Which step or page fails (installer, Discord connection, Staff Management, Frank, cron, etc.).
+2. The exact error text, with paths/usernames/IPs masked where appropriate.
+3. PHP version, hosting type (for example cPanel), and whether the database migrations have run.
+4. Which feature is enabled and what should happen versus what actually happens.
+5. A redacted screenshot or relevant **sanitised** server error-log lines.
+
+**Never include:** `config.php`, DB passwords, bot tokens, OAuth client secrets, webhook URLs, session cookies, installation keys, or unredacted access-log IP addresses.
+
+Repository: https://github.com/TTVytangelofhype/website-template
+
+Development branch: https://github.com/TTVytangelofhype/website-template/tree/habbo-fansite-v2
+
+Compare before merging: https://github.com/TTVytangelofhype/website-template/compare/main...habbo-fansite-v2
+
+---
+
+**Maintainer note:** This guide describes the Frank ZIP's required integration steps explicitly. The presence of `009_access_denials.sql` in GitHub does **not** prove that every uploaded PHP file or the bootstrap hook is present. Verify the checklist in Section F after manual uploads.
