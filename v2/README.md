@@ -43,4 +43,4 @@ For **new installations**, the primary schema includes `is_active` and `session_
 - Staff can request cancellation of an approved upcoming shift; managers review the cancellation before it is removed from the approved rota.
 - New installs import `006_notifications.sql`. Existing V2 installs should apply it once **before deploying these PHP updates**.
 - Notifications currently remain **inside the site**: email/Discord delivery and automatic timed reminders are not implemented yet.
-- Interactive click-to-select calendar booking UI remains a follow-up; the current rota is read-only, with booking creation via the dashboard form.
+- Staff can now select a date/time on the rota page to prefill a booking request on the dashboard. Drag/drop editing, free-slot conflict highlighting, email/Discord delivery and timed reminders remain future milestones.
