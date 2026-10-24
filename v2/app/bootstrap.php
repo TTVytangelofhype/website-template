@@ -11,7 +11,13 @@ $pdo=new PDO('mysql:host='.$config['db_host'].';dbname='.$config['db_name'].';ch
 function h(?string $v):string {return htmlspecialchars($v??'',ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function csrf():string {return $_SESSION['csrf']??=bin2hex(random_bytes(32));}
 function verify_csrf():void {if(!hash_equals(csrf(),(string)($_POST['csrf']??''))){http_response_code(403);exit('Invalid CSRF token');}}
-function user():?array{return $_SESSION['user']??null;}
+function user():?array{global $pdo;
+ if(empty($_SESSION['user']['id']))return null;
+ $s=$pdo->prepare('SELECT id,username,role,is_active,session_version FROM users WHERE id=?');
+ $s->execute([(int)$_SESSION['user']['id']]);$dbUser=$s->fetch();
+ if(!$dbUser || !(int)$dbUser['is_active'] || (int)$dbUser['session_version'] !== (int)($_SESSION['user']['session_version']??0)) {unset($_SESSION['user']);return null;}
+ $_SESSION['user']['role']=$dbUser['role'];$_SESSION['user']['username']=$dbUser['username'];return $_SESSION['user'];
+}
 function require_login():array{if(!user()){header('Location: login.php');exit;}return user();}
 function can_manage(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&$role==='radio_manager')||($kind==='event'&&$role==='events_manager');}
 function can_book(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&in_array($role,['radio_manager','dj'],true))||($kind==='event'&&in_array($role,['events_manager','event_host'],true));}
