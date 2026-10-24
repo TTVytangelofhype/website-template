@@ -37,3 +37,10 @@ For **new installations**, the primary schema includes `is_active` and `session_
 - `applications.php` shows pending applications to owner/admin and the relevant radio/events manager. Accepting an application does **not** grant an account or login privileges. Owner can create staff credentials separately in Staff Management.
 - `rota.php` shows the current Monday–Sunday staff schedule with approved and pending booking status. Public calendar continues to show approved bookings only.
 - Fresh installations import `005_applications.sql` automatically. Existing V2 installs must run `database/005_applications.sql` through phpMyAdmin once.
+
+## Notifications and shift changes (Phase 6)
+- In-app notification inbox for staff, including booking decisions and manager alerts on new booking requests.
+- Staff can request cancellation of an approved upcoming shift; managers review the cancellation before it is removed from the approved rota.
+- New installs import `006_notifications.sql`. Existing V2 installs should apply it once **before deploying these PHP updates**.
+- Notifications currently remain **inside the site**: email/Discord delivery and automatic timed reminders are not implemented yet.
+- Interactive click-to-select calendar booking UI remains a follow-up; the current rota is read-only, with booking creation via the dashboard form.
