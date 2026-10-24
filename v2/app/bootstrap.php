@@ -19,6 +19,7 @@ function user():?array{global $pdo;
  $_SESSION['user']['role']=$dbUser['role'];$_SESSION['user']['username']=$dbUser['username'];return $_SESSION['user'];
 }
 require_once __DIR__.'/discord.php';
+require_once __DIR__.'/access-denial.php';
 function require_login():array{
  global $pdo,$config;
  $me=user();if(!$me){header('Location: login.php');exit;}
@@ -31,7 +32,7 @@ function require_login():array{
   $s=$pdo->prepare('SELECT discord_id FROM users WHERE id=?');$s->execute([$me['id']]);$did=(string)$s->fetchColumn();
   if(!$did){header('Location: discord-connect.php');exit;}
   if(empty($_SESSION['discord_verified_at'])||time()-$_SESSION['discord_verified_at']>300){
-   if(!discord_authorised($pdo,$config,$did)){unset($_SESSION['discord_verified_at']);http_response_code(403);exit('Discord role access denied. Contact the fansite owner.');}
+   if(!discord_authorised($pdo,$config,$did)){unset($_SESSION['discord_verified_at']);deny_panel_access($pdo,(int)$me['id'],'discord_role_unverified');}
    $_SESSION['discord_verified_at']=time();
   }
  }
