@@ -51,3 +51,22 @@ The private PHP CLI task at `v2/cron/reminders.php` creates one in-app notificat
 `*/5 * * * * /usr/local/bin/php /home/ACCOUNT/private/v2/cron/reminders.php`
 
 Replace both executable and path to match your hosting provider. Keep `v2/cron` outside the public document root. New installs include `007_reminders.sql`; existing installs must import it once before enabling the task. Discord/webhook delivery is **not yet included** and will require a separate opt-in integration. This code requires staging verification with MySQL, PHP CLI, and the host timezone.
+
+## Phase 8: booking concurrency and Discord reminders
+Booking approvals now acquire a stable owner-row lock **before** inspecting a booking or approved overlaps, serialising concurrent approvals in the InnoDB transaction. The app continues to allow only one approved booking per type for overlapping times (DJ and event calendars are independent). This does not yet address all DST boundaries or room-specific scheduling.
+
+The owner can optionally enter a Discord webhook URL at **Fansite Settings** and explicitly enable reminders. The private `cron/reminders.php` worker delivers a short message approximately 30 minutes ahead, only for approved bookings, with mentions disabled. The webhook is stored in the private database, should be treated as a secret, and never belongs in source control or screenshots. Discord delivery is best-effort: failures are logged and cannot be retried with the current once-only reminder key. If you need guaranteed delivery, use a persistent outbox in a future milestone.
+
+## Staging validation before release
+- Run new installation against a fresh MySQL database: check config and installation lock; confirm setup cannot be accessed again.
+- Confirm the owner can sign in, save branding, create staff and view applications.
+- Confirm suspended users and users with changed roles lose access immediately.
+- Test two managers approving simultaneous overlapping DJ bookings and confirm only one is approved.
+- Verify members cannot access staff management or another manager's application queues.
+- Approve a DJ booking and confirm its appearance on the public calendar; pending bookings should be private.
+- Test shift cancellation workflow and manager approval.
+- Schedule an approved booking for 30 minutes ahead, run private CLI cron twice, and confirm exactly one in-site reminder.
+- With Discord turned **off**, confirm no webhook requests are sent. Enable and test in a private Discord channel only.
+- Confirm that DST changeover days and concurrent installer requests are covered before making the app public.
+
+This milestone was committed remotely; these end-to-end checks still require a deployed PHP/MySQL staging environment.
