@@ -41,7 +41,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
    $db=new PDO("mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4",$dbUser,$dbPass,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);
    $tableExists=$db->query("SHOW TABLES LIKE 'users'")->fetchColumn();
    if($tableExists){throw new RuntimeException('This database already has a users table. Use a clean database for a new installation.');}
-   foreach(['schema.sql','002_radio.sql','003_settings.sql','005_applications.sql','006_notifications.sql','007_reminders.sql'] as $sqlFile){
+   foreach(['schema.sql','002_radio.sql','003_settings.sql','005_applications.sql','006_notifications.sql','007_reminders.sql','008_security.sql'] as $sqlFile){
     $sql=file_get_contents($root.'/database/'.$sqlFile);
     foreach(explode(';',$sql) as $statement){if(trim($statement)!=='')$db->exec($statement);}
    }
@@ -58,6 +58,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
    @unlink($tokenFile);
    session_regenerate_id(true);
    $_SESSION['user']=['id'=>(int)$db->lastInsertId(),'username'=>$owner,'role'=>'owner','session_version'=>1];
+   $db->prepare('INSERT INTO staff_sessions(user_id,session_hash,ip_address,user_agent) VALUES (?,?,?,?)')->execute([$_SESSION['user']['id'],hash('sha256',session_id()),(string)($_SERVER['REMOTE_ADDR']??'unknown'),mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,255)]);
    header('Location: dashboard.php');exit;
   }catch(Throwable $ex){error_log('Fansite installation error: '.$ex->getMessage());$error='Installation stopped: '.e($ex->getMessage()).' Check database and directory permissions. If tables were created, use a fresh empty database before retrying.';}
  }
