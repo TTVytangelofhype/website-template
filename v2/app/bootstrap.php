@@ -16,3 +16,8 @@ function require_login():array{if(!user()){header('Location: login.php');exit;}r
 function can_manage(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&$role==='radio_manager')||($kind==='event'&&$role==='events_manager');}
 function can_book(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&in_array($role,['radio_manager','dj'],true))||($kind==='event'&&in_array($role,['events_manager','event_host'],true));}
 function audit(PDO $db,int $id,string $action,array $context=[]):void{$s=$db->prepare('INSERT INTO audit_logs (actor_id,action,context_json) VALUES (?,?,?)');$s->execute([$id,$action,json_encode($context)]);}
+
+function site_settings(PDO $db,array $defaults=[]):array {
+ $rows=$db->query('SELECT setting_key,setting_value FROM site_settings')->fetchAll(PDO::FETCH_KEY_PAIR);
+ return array_replace($defaults,$rows);
+}
