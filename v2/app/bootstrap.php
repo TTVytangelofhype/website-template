@@ -10,7 +10,7 @@ function h(?string $v):string { return htmlspecialchars($v ?? '', ENT_QUOTES | E
 function csrf():string { return $_SESSION['csrf'] ??= bin2hex(random_bytes(32)); }
 function verify_csrf():void { if (!hash_equals(csrf(),(string)($_POST['csrf']??''))) { http_response_code(403); exit('Invalid CSRF token'); } }
 function user():?array { return $_SESSION['user'] ?? null; }
-function require_login():array { if (!user()) { header('Location: index.php'); exit; } return user(); }
+function require_login():array { if (!user()) { header('Location: login.php'); exit; } return user(); }
 function can_manage(string $kind, string $role):bool {
  return in_array($role,['owner','admin'],true) || ($kind==='dj' && $role==='radio_manager') || ($kind==='event' && $role==='events_manager');
 }
