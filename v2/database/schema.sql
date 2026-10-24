@@ -3,6 +3,8 @@ CREATE TABLE users (
  username VARCHAR(40) NOT NULL UNIQUE,
  password_hash VARCHAR(255) NOT NULL,
  role ENUM('owner','admin','radio_manager','events_manager','dj','event_host','member') NOT NULL DEFAULT 'member',
+ is_active TINYINT(1) NOT NULL DEFAULT 1,
+ session_version INT UNSIGNED NOT NULL DEFAULT 1,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 CREATE TABLE bookings (
