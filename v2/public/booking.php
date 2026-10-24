@@ -19,6 +19,8 @@ $id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT);
 if(!$id) back('Invalid booking.');
 try {
  $pdo->beginTransaction();
+ // Serialise all approval checks on one stable, existing owner row before reading booking state.
+ if($action==='approve') { $guard=$pdo->query("SELECT id FROM users WHERE role='owner' ORDER BY id LIMIT 1 FOR UPDATE")->fetchColumn(); if(!$guard) throw new RuntimeException('Booking approval lock unavailable'); }
  $s=$pdo->prepare('SELECT * FROM bookings WHERE id=? FOR UPDATE');$s->execute([$id]);$booking=$s->fetch();
  if(!$booking) { $pdo->rollBack(); back('Booking not found.'); }
  $manage=can_manage($booking['kind'],$me['role']);
@@ -26,8 +28,7 @@ try {
  if($action==='cancel' && !$manage && (int)$booking['host_id']!==$me['id']) { $pdo->rollBack();http_response_code(403);exit('Not permitted'); }
  if(!in_array($action,['approve','reject','cancel'],true)) {$pdo->rollBack();back('Invalid action');}
  if($action==='approve' && $booking['status']==='pending') {
-  // Serialises approval of a booking kind to prevent concurrent approvals of overlapping slots.
-  $pdo->query("SELECT id FROM users WHERE role='owner' LIMIT 1 FOR UPDATE")->fetch();
+  // The owner row lock above serialises approval transactions before their booking reads.
   $s=$pdo->prepare("SELECT COUNT(*) FROM bookings WHERE id<>? AND kind=? AND status='approved' AND start_at<? AND end_at>?");
   $s->execute([$id,$booking['kind'],$booking['end_at'],$booking['start_at']]);
   if((int)$s->fetchColumn()>0) {$pdo->rollBack();back('Time slot already approved; choose another.');}
