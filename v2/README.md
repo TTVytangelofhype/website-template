@@ -44,3 +44,10 @@ For **new installations**, the primary schema includes `is_active` and `session_
 - New installs import `006_notifications.sql`. Existing V2 installs should apply it once **before deploying these PHP updates**.
 - Notifications currently remain **inside the site**: email/Discord delivery and automatic timed reminders are not implemented yet.
 - Staff can now select a date/time on the rota page to prefill a booking request on the dashboard. Drag/drop editing, free-slot conflict highlighting, email/Discord delivery and timed reminders remain future milestones.
+
+## Scheduled reminders (Phase 7)
+The private PHP CLI task at `v2/cron/reminders.php` creates one in-app notification per approved booking around 30 minutes before its start. It has a uniqueness constraint to avoid repeated alerts. Set up a cPanel cron job to run every five minutes, for example:
+
+`*/5 * * * * /usr/local/bin/php /home/ACCOUNT/private/v2/cron/reminders.php`
+
+Replace both executable and path to match your hosting provider. Keep `v2/cron` outside the public document root. New installs include `007_reminders.sql`; existing installs must import it once before enabling the task. Discord/webhook delivery is **not yet included** and will require a separate opt-in integration. This code requires staging verification with MySQL, PHP CLI, and the host timezone.
