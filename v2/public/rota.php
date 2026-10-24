@@ -1,0 +1,9 @@
+<?php
+require __DIR__.'/../app/bootstrap.php';
+$me=require_login();
+$today=new DateTimeImmutable('today',new DateTimeZone('Europe/London'));
+$start=$today->modify('monday this week')->format('Y-m-d');
+$end=$today->modify('monday this week +7 days')->format('Y-m-d');
+$s=$pdo->prepare("SELECT b.id,b.kind,b.title,b.start_at,b.end_at,b.status,u.username FROM bookings b JOIN users u ON u.id=b.host_id WHERE b.start_at>=? AND b.start_at<? AND b.status IN ('pending','approved') ORDER BY b.start_at");
+$s->execute([$start,$end]);$bookings=$s->fetchAll();
+?><!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DJ and Event Rota</title><link rel="stylesheet" href="style.css"><main><a href="dashboard.php">← Dashboard</a><h1>DJ & Event Rota</h1><p>Week of <?=h($start)?> · All times Europe/London · Pending requests are visible to staff only.</p><section class="rota-grid"><?php for($i=0;$i<7;$i++):$day=$today->modify('monday this week')->modify("+$i days")->format('Y-m-d');?><article class="panel rota-day"><h2><?=h(date('D d M',strtotime($day)))?></h2><?php $found=false;foreach($bookings as $b):if(substr($b['start_at'],0,10)!==$day)continue;$found=true;?><div class="rota-slot <?=h($b['kind'])?>"><strong><?=h(substr($b['start_at'],11,5))?>–<?=h(substr($b['end_at'],11,5))?></strong><div><?=h($b['title'])?></div><small><?=h($b['username'])?> · <?=h($b['status'])?></small></div><?php endforeach;if(!$found):?><p>Available</p><?php endif;?></article><?php endfor;?></section><p><a class="cta" href="dashboard.php#bookings">Request a booking</a></p></main></html>
