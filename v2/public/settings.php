@@ -7,7 +7,9 @@ $defaults=[
  'site_tagline'=>(string)($config['site']['tagline']??'Your Habbo community. Your music. Your events.'),
  'radio_url'=>(string)($config['site']['stream_url']??''),
  'theme'=>'hotel',
- 'logo_url'=>''
+ 'logo_url'=>'',
+ 'discord_enabled'=>'0',
+ 'discord_webhook'=>''
 ];
 $fields=array_keys($defaults);
 $values=site_settings($pdo,$defaults);
@@ -19,12 +21,17 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  $radio=trim((string)($_POST['radio_url']??''));
  $logo=trim((string)($_POST['logo_url']??''));
  $theme=(string)($_POST['theme']??'hotel');
+ $discordEnabled=isset($_POST['discord_enabled'])?'1':'0';
+ $discordUrl=trim((string)($_POST['discord_webhook']??''));
+ $discordHost=parse_url($discordUrl,PHP_URL_HOST);
+ $discordValid=$discordUrl==='' || (filter_var($discordUrl,FILTER_VALIDATE_URL) && parse_url($discordUrl,PHP_URL_SCHEME)==='https' && in_array($discordHost,['discord.com','discordapp.com'],true) && str_starts_with((string)parse_url($discordUrl,PHP_URL_PATH),'/api/webhooks/'));
  if(mb_strlen($name)<3||mb_strlen($name)>70){$error='The fansite name must contain 3–70 characters.';}
  elseif(mb_strlen($tagline)>170){$error='The tagline must be under 171 characters.';}
+ elseif(!$discordValid || ($discordEnabled==='1' && $discordUrl==='')){$error='Enter a valid Discord HTTPS webhook URL before enabling notifications.';}
  elseif(!in_array($theme,['hotel','neon','midnight'],true)){$error='Please select a valid theme.';}
  elseif(($radio!==''&&(!filter_var($radio,FILTER_VALIDATE_URL)||parse_url($radio,PHP_URL_SCHEME)!=='https'))||($logo!==''&&(!filter_var($logo,FILTER_VALIDATE_URL)||parse_url($logo,PHP_URL_SCHEME)!=='https'))){$error='Radio and logo URLs must be valid HTTPS addresses.';}
  else{
-  $values=['site_name'=>$name,'site_tagline'=>$tagline,'radio_url'=>$radio,'logo_url'=>$logo,'theme'=>$theme];
+  $values=['site_name'=>$name,'site_tagline'=>$tagline,'radio_url'=>$radio,'logo_url'=>$logo,'theme'=>$theme,'discord_enabled'=>$discordEnabled,'discord_webhook'=>$discordUrl];
   try{
    $pdo->beginTransaction();
    $s=$pdo->prepare('INSERT INTO site_settings (setting_key,setting_value) VALUES (?,?) ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)');
@@ -44,5 +51,5 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
 <label>Logo image URL (HTTPS, optional)<input type="url" name="logo_url" placeholder="https://example.com/logo.png" value="<?=h($values['logo_url'])?>"></label>
 <label>Radio stream URL (HTTPS, optional)<input type="url" name="radio_url" placeholder="https://example.com/stream" value="<?=h($values['radio_url'])?>"></label>
 <label>Colour theme<select name="theme"><option value="hotel" <?=$values['theme']==='hotel'?'selected':''?>>Classic Hotel (gold and blue)</option><option value="neon" <?=$values['theme']==='neon'?'selected':''?>>Neon Radio (pink and cyan)</option><option value="midnight" <?=$values['theme']==='midnight'?'selected':''?>>Midnight (violet and blue)</option></select></label>
-<button type="submit">Save fansite settings</button></form><p class="soft-note">Images must be hosted over HTTPS. SVG logos and remote images should come from sources you trust.</p></section>
+<h2>Discord notifications (optional)</h2><p>Only scheduled shift reminders use the webhook. The webhook is a secret; protect access to your database and owner account.</p><label>Discord webhook URL<input name="discord_webhook" type="password" autocomplete="off" value="<?=h($values['discord_webhook'])?>" placeholder="https://discord.com/api/webhooks/..."></label><label><input type="checkbox" name="discord_enabled" value="1" <?=$values['discord_enabled']==='1'?'checked':''?>> Enable Discord shift reminders</label><button type="submit">Save fansite settings</button></form><p class="soft-note">Images must be hosted over HTTPS. SVG logos and remote images should come from sources you trust.</p></section>
 </main></div></html>
