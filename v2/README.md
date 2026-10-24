@@ -21,3 +21,8 @@ Unofficial Habbo fansite; not endorsed by Habbo or Sulake. Branch `habbo-fansite
 
 ## Remaining work
 This is not production audited. Login throttling, robust multi-process booking conflict locks, DST edge handling, staff account/role editor, spam mitigation, recurring booking features and live radio metadata integration are pending.
+
+## Owner settings after installation
+Log into `/login.php` as the owner and open **Fansite Settings** from the dashboard. Set fansite name, tagline, optional HTTPS logo URL and radio stream, and select Classic Hotel, Neon Radio or Midnight theme. Saved options live in MySQL `site_settings`, not in `config.php`. The installer creates this table on new installs.
+
+**Existing V2 developer-preview installs:** import `database/003_settings.sql` once through phpMyAdmin before opening the homepage or settings panel. This update does not touch legacy `main`.
