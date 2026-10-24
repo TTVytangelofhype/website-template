@@ -1,6 +1,6 @@
 # Habbo Fansite V2 — Installation & Help Centre
 
-> **Developer preview / staging only.** This is an independent Habbo-inspired fansite, not affiliated with or endorsed by Habbo or Sulake. Develop on `habbo-fansite-v2`; do not replace the original `main` site until installation and security tests pass.
+> **Developer preview / staging only.** This is an independent Habbo-inspired fansite, not affiliated with or endorsed by Habbo or Sulake. V2 has been merged into `main`; test on a staging environment before public release.
 
 A PHP/MySQL fansite with a public hotel-style homepage, radio and song requests, a booking calendar, DJ/event rota, staff applications, owner settings, staff administration, notifications, Discord integration, and security logs.
 
@@ -65,7 +65,7 @@ Fill in:
 
 Select **Create my fansite**. The installer creates the tables, owner user and private configuration file, then locks itself. After setup, open `/login.php` for staff or `/index.php` for the public site.
 
-**The current installer imports** `schema.sql`, `002_radio.sql`, `003_settings.sql`, `005_applications.sql`, `006_notifications.sql`, `007_reminders.sql`, and `008_security.sql`. **If `009_access_denials.sql` has been uploaded**, the existing installer still needs that filename added to its SQL import array for new installs. Alternatively import it manually through phpMyAdmin after installation. A database file merely sitting on disk does not automatically run.
+**The current installer imports** `schema.sql`, `002_radio.sql`, `003_settings.sql`, `005_applications.sql`, `006_notifications.sql`, `007_reminders.sql`, and `008_security.sql`. The installer now also imports `009_access_denials.sql` on new installations. Existing installations must import it once through phpMyAdmin. A database file merely sitting on disk does not automatically run.
 
 ### 5. Secure the installation
 - Check `/setup.php` refuses subsequent installation attempts; remove or block that endpoint after setup if possible.
@@ -145,7 +145,7 @@ v2/database/009_access_denials.sql
 v2/cron/purge-access-logs.php
 ```
 
-**Uploading is not the same as activating it.** Check the uploaded files and perform the integration steps in the ZIP's `INTEGRATION.md`.
+**Frank is now integrated into `main`.** The remaining steps below explain how to check or recover the integration, not changes required on a correctly updated install.
 
 1. Import `009_access_denials.sql` on existing installs.
 2. In `v2/app/bootstrap.php`, just after `require_once __DIR__.'/discord.php';`, add `require_once __DIR__.'/access-denial.php';`.
@@ -244,4 +244,4 @@ Compare before merging: https://github.com/TTVytangelofhype/website-template/com
 
 ---
 
-**Maintainer note:** This guide describes the Frank ZIP's required integration steps explicitly. The presence of `009_access_denials.sql` in GitHub does **not** prove that every uploaded PHP file or the bootstrap hook is present. Verify the checklist in Section F after manual uploads.
+**Maintainer note:** The Frank page, owner log, bootstrap denial hook, and migration were committed to `main`. Test them together on staging, configure a daily log-purge cron job, and ensure your privacy notice describes the logging.
