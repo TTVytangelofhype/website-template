@@ -4,3 +4,5 @@
 
 /* Owner-selectable public themes */
 .site-logo{width:54px;height:54px;object-fit:contain;border-radius:8px}.theme-neon{--bg:#160d27;--panel:#211437;--line:#5d327c;--pink:#ff61d0;--blue:#37e9f1}.theme-neon .cta{background:#ff79d9}.theme-neon .hero h1 span{color:#ff79d9}.theme-midnight{--bg:#0b122a;--panel:#141d3e;--line:#35396d;--pink:#9a8afa;--blue:#6ab7ff}.theme-midnight .cta{background:#aa9cff}.theme-midnight .hero h1 span{color:#baadff}
+
+.honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}.installer{width:min(700px,100%)}.rota-grid{display:grid;grid-template-columns:repeat(7,minmax(160px,1fr));gap:10px;overflow-x:auto}.rota-day{padding:12px}.rota-day h2{font-size:15px}.rota-slot{background:#244b62;border-left:3px solid #60d7eb;padding:10px;border-radius:6px;margin-bottom:9px;overflow-wrap:anywhere}.rota-slot.event{background:#49335a;border-color:#ed9ddb}.rota-slot small{display:block}@media(max-width:1200px){.rota-grid{grid-template-columns:repeat(7,minmax(140px,1fr));overflow-x:auto}}
