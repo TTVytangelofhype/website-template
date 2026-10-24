@@ -18,7 +18,25 @@ function user():?array{global $pdo;
  if(!$dbUser || !(int)$dbUser['is_active'] || (int)$dbUser['session_version'] !== (int)($_SESSION['user']['session_version']??0)) {unset($_SESSION['user']);return null;}
  $_SESSION['user']['role']=$dbUser['role'];$_SESSION['user']['username']=$dbUser['username'];return $_SESSION['user'];
 }
-function require_login():array{if(!user()){header('Location: login.php');exit;}return user();}
+require_once __DIR__.'/discord.php';
+function require_login():array{
+ global $pdo,$config;
+ $me=user();if(!$me){header('Location: login.php');exit;}
+ $hash=hash('sha256',session_id());
+ $s=$pdo->prepare('SELECT id,revoked_at FROM staff_sessions WHERE session_hash=? AND user_id=?');
+ $s->execute([$hash,$me['id']]);$record=$s->fetch();
+ if(!$record || $record['revoked_at']){unset($_SESSION['user']);header('Location: login.php');exit;}
+ if(empty($_SESSION['session_touch'])||time()-$_SESSION['session_touch']>=60){$pdo->prepare('UPDATE staff_sessions SET last_seen_at=NOW() WHERE id=?')->execute([$record['id']]);$_SESSION['session_touch']=time();}
+ if(discord_enabled($pdo) && !in_array(basename($_SERVER['SCRIPT_NAME']??''),['discord-connect.php','discord-callback.php'],true)){
+  $s=$pdo->prepare('SELECT discord_id FROM users WHERE id=?');$s->execute([$me['id']]);$did=(string)$s->fetchColumn();
+  if(!$did){header('Location: discord-connect.php');exit;}
+  if(empty($_SESSION['discord_verified_at'])||time()-$_SESSION['discord_verified_at']>300){
+   if(!discord_authorised($pdo,$config,$did)){unset($_SESSION['discord_verified_at']);http_response_code(403);exit('Discord role access denied. Contact the fansite owner.');}
+   $_SESSION['discord_verified_at']=time();
+  }
+ }
+ return $me;
+}
 function can_manage(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&$role==='radio_manager')||($kind==='event'&&$role==='events_manager');}
 function can_book(string $kind,string $role):bool{return in_array($role,['owner','admin'],true)||($kind==='dj'&&in_array($role,['radio_manager','dj'],true))||($kind==='event'&&in_array($role,['events_manager','event_host'],true));}
 function audit(PDO $db,int $id,string $action,array $context=[]):void{$s=$db->prepare('INSERT INTO audit_logs (actor_id,action,context_json) VALUES (?,?,?)');$s->execute([$id,$action,json_encode($context)]);}
