@@ -4,11 +4,11 @@ $error='';
 if ($_SERVER['REQUEST_METHOD']==='POST') {
  verify_csrf();
  $username=trim((string)($_POST['username']??''));
- $s=$pdo->prepare('SELECT id,username,password_hash,role FROM users WHERE username=?');
+ $s=$pdo->prepare('SELECT id,username,password_hash,role,is_active,session_version FROM users WHERE username=?');
  $s->execute([$username]); $found=$s->fetch();
- if ($found && password_verify((string)($_POST['password']??''), $found['password_hash'])) {
+ if ($found && (int)$found['is_active']===1 && password_verify((string)($_POST['password']??''), $found['password_hash'])) {
   session_regenerate_id(true);
-  $_SESSION['user']=['id'=>(int)$found['id'],'username'=>$found['username'],'role'=>$found['role']];
+  $_SESSION['user']=['id'=>(int)$found['id'],'username'=>$found['username'],'role'=>$found['role'],'session_version'=>(int)$found['session_version']];
   header('Location: dashboard.php');exit;
  }
  $error='Invalid username or password';
