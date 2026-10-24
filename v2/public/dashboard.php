@@ -10,9 +10,9 @@ $message=(string)($_GET['message']??'');
 <section class="cards"><div class="panel"><span>Upcoming bookings</span><h2><?=count($bookings)?></h2></div><div class="panel"><span>Your role</span><h2><?=h(ucwords(str_replace('_',' ',$me['role'])))?></h2></div></section>
 <section id="bookings" class="panel"><h2>Request a booking</h2><p>All requested slots require approval. Times use the Europe/London timezone.</p><form method="post" action="booking.php">
 <input type="hidden" name="csrf" value="<?=h(csrf())?>"><input type="hidden" name="action" value="create">
-<label>Booking type<select name="kind"><option value="dj">DJ show</option><option value="event">Habbo event</option></select></label>
+<label>Booking type<select name="kind"><option value="dj" <?=($_GET['kind']??'')==='dj'?'selected':''?>>DJ show</option><option value="event" <?=($_GET['kind']??'')==='event'?'selected':''?>>Habbo event</option></select></label>
 <label>Title<input name="title" required maxlength="120" placeholder="Saturday Night Requests"></label>
-<label>Start (UK local time)<input type="datetime-local" name="start_at" required></label><label>End (UK local time)<input type="datetime-local" name="end_at" required></label>
+<label>Start (UK local time)<input type="datetime-local" name="start_at" value="<?=h(preg_match('/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$/',(string)($_GET['start']??''))?(string)$_GET['start']:'')?>" required></label><label>End (UK local time)<input type="datetime-local" name="end_at" required></label>
 <label>Room / show details<textarea name="details" rows="3" maxlength="2000"></textarea></label><button>Send booking request</button></form></section>
 <section id="schedule" class="panel"><h2>Upcoming schedule</h2><div class="tablewrap"><table><thead><tr><th>Date (UK)</th><th>Type</th><th>Title</th><th>Host</th><th>Status</th><th>Manage</th></tr></thead><tbody>
 <?php foreach($bookings as $b):?><tr><td><?=h($b['start_at'])?> – <?=h(substr($b['end_at'],11,5))?></td><td><?=h($b['kind'])?></td><td><?=h($b['title'])?></td><td><?=h($b['username'])?></td><td><span class="tag"><?=h($b['status'])?></span></td><td><?php if($b['status']==='pending' && can_manage($b['kind'],$me['role'])): ?>
