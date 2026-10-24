@@ -57,7 +57,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
    file_put_contents($lockFile,'installed',LOCK_EX);@chmod($lockFile,0600);
    @unlink($tokenFile);
    session_regenerate_id(true);
-   $_SESSION['user']=['id'=>(int)$db->lastInsertId(),'username'=>$owner,'role'=>'owner'];
+   $_SESSION['user']=['id'=>(int)$db->lastInsertId(),'username'=>$owner,'role'=>'owner','session_version'=>1];
    header('Location: dashboard.php');exit;
   }catch(Throwable $ex){error_log('Fansite installation error: '.$ex->getMessage());$error='Installation stopped: '.e($ex->getMessage()).' Check database and directory permissions. If tables were created, use a fresh empty database before retrying.';}
  }
