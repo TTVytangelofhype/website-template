@@ -26,3 +26,8 @@ This is not production audited. Login throttling, robust multi-process booking c
 Log into `/login.php` as the owner and open **Fansite Settings** from the dashboard. Set fansite name, tagline, optional HTTPS logo URL and radio stream, and select Classic Hotel, Neon Radio or Midnight theme. Saved options live in MySQL `site_settings`, not in `config.php`. The installer creates this table on new installs.
 
 **Existing V2 developer-preview installs:** import `database/003_settings.sql` once through phpMyAdmin before opening the homepage or settings panel. This update does not touch legacy `main`.
+
+## Staff Management
+Owners can now use **Staff Management** in the dashboard to create accounts, choose staff roles, suspend/reactivate members and reset passwords. Account changes increment a session version, invalidating old login sessions. The owner account is protected against modification through the panel.
+
+For **new installations**, the primary schema includes `is_active` and `session_version`. For **existing V2 installs created before this update**, run `database/004_staff.sql` once using phpMyAdmin before deploying the updated authentication code. Do **not** run 004 on a fresh installation whose schema already contains those columns. Until you run the migration, the new login will fail. Temporary passwords must be shared securely; self-service password changes and email invites are future work.
