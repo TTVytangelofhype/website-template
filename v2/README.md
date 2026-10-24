@@ -1,24 +1,23 @@
-# Habbo Fansite V2 — Hybrid Design (developer preview)
-Not affiliated with or endorsed by Habbo or Sulake. This work is isolated in `v2/` on branch `habbo-fansite-v2`; original site on `main` is unchanged.
+# Habbo Fansite V2 — Hybrid (developer preview)
 
-## Features
-- Public Habbo-inspired home with pixel-style hotel, event previews, radio player and live calendar
-- Public song requests stored in MySQL, DJ staff request moderation
-- One-time owner setup page protected by a secret setup key
-- Secure staff sign-in, role-gated approval queue for DJ and event bookings, audit logs
-- Calendar publishes approved slots only; member and DJ roles cannot approve their own bookings
+Unofficial Habbo fansite; not endorsed by Habbo or Sulake. Branch `habbo-fansite-v2` preserves legacy `main`.
 
-## Deploy to cPanel
-1. Create MySQL database and user with suitable privileges in cPanel.
-2. Run `database/schema.sql`, then `database/002_radio.sql` in phpMyAdmin.
-3. Copy `config.example.php` to **`config.php`**, configure DB credentials, a unique random `setup_key` of 32+ characters, site branding and radio stream URL.
-4. Set your domain or test subdomain document root to **`v2/public`**, never the repository root. Keep config and app source out of publicly served files.
-5. Use HTTPS and visit `/setup.php`. Supply the setup key and create a 14+ character owner password. Setup becomes unavailable when an account exists. After completion, delete the setup key from production configuration and remove or block setup.php.
-6. Visit `/login.php` for staff tools, `/index.php` for the public fansite. Existing members/roles currently require owner-managed provisioning through the database (UI pending).
-7. Confirm PHP 8.3+, PDO MySQL, mbstring, and TLS are enabled.
+## Easy first-time installation (no config.php editing)
+1. Use PHP 8.3+ with PDO MySQL and mbstring and a MySQL/MariaDB server.
+2. Upload the **contents of v2**, keeping `app/`, `database/` and configuration outside the public document root. Point the HTTPS domain or staging subdomain document root at `v2/public`.
+3. In cPanel **MySQL Databases**, create a **new, empty database** and database user, grant the user database permissions, and note the database name, username and password.
+4. Browse to `https://your-fansite.example/setup.php`. The installer automatically creates `v2/install-token.txt` in the **private parent v2 directory**. Read this one-time key using cPanel File Manager and enter it into the installer.
+5. Fill out database connection, **fansite name**, **tagline**, optional HTTPS radio stream, and **owner username/password** (14+ characters).
+6. Click **Create my fansite**. The installer imports both SQL files, creates the first owner, writes a private `config.php`, writes `.installed`, deletes the installation key, and signs in as owner.
+7. Visit `/index.php` for the public site or `/login.php` for staff. Remove write permission from the application directory after installation. Retain a safe backup of config.php.
 
-## Booking and data notes
-Times are interpreted and stored as **Europe/London local time**. DST boundary ambiguity needs improvement before production use. DJ shows and events have separate exclusive approval calendars. Approvals reject overlapping confirmed slots of the same kind. Public calendar displays approved bookings only. Request submissions have a session-level cooldown; a stronger IP/user rate limit and anti-spam solution are needed prior to public deployment.
+**Security:** The installation token is required to prevent unauthorised first-owner creation on a public server. Do not upload the `v2` directory into a publicly served parent folder with unrestricted access. Setup refuses to run if `config.php` or `.installed` exists. No existing installs are migrated automatically. Keep `main` deployed until staging tests pass. Do not use a populated production database for a new installation.
 
-## Important known limitations
-This is a developer preview, not yet production audited. Install and test on a staging subdomain first. Current login has no brute-force limiter; staff management/roles editor, recurring calendar bookings, granular event room conflicts and automated stream now-playing integration remain future milestones. Staff management presently means existing role-controlled staff access rather than a complete staff-admin UI. Legacy requests in JSON are not imported automatically. Keep `main` deployed until migration testing passes.
+## Features included
+- Habbo-inspired homepage, monthly calendar, DJ radio stream and song request form
+- Owner and staff authentication, role-controlled DJ/event booking approvals, audit logs
+- MySQL-backed song request moderation and booking data
+- Browser-based installation wizard
+
+## Remaining work
+This is not production audited. Login throttling, robust multi-process booking conflict locks, DST edge handling, staff account/role editor, spam mitigation, recurring booking features and live radio metadata integration are pending.
