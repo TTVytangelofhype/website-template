@@ -6,3 +6,62 @@
 .site-logo{width:54px;height:54px;object-fit:contain;border-radius:8px}.theme-neon{--bg:#160d27;--panel:#211437;--line:#5d327c;--pink:#ff61d0;--blue:#37e9f1}.theme-neon .cta{background:#ff79d9}.theme-neon .hero h1 span{color:#ff79d9}.theme-midnight{--bg:#0b122a;--panel:#141d3e;--line:#35396d;--pink:#9a8afa;--blue:#6ab7ff}.theme-midnight .cta{background:#aa9cff}.theme-midnight .hero h1 span{color:#baadff}
 
 .honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}.installer{width:min(700px,100%)}.rota-grid{display:grid;grid-template-columns:repeat(7,minmax(160px,1fr));gap:10px;overflow-x:auto}.rota-day{padding:12px}.rota-day h2{font-size:15px}.rota-slot{background:#244b62;border-left:3px solid #60d7eb;padding:10px;border-radius:6px;margin-bottom:9px;overflow-wrap:anywhere}.rota-slot.event{background:#49335a;border-color:#ed9ddb}.rota-slot small{display:block}@media(max-width:1200px){.rota-grid{grid-template-columns:repeat(7,minmax(140px,1fr));overflow-x:auto}}
+
+
+/* V2.1 classic pixel-hotel redesign: no third-party images or fonts required */
+:root{--bg:#cfe8e9;--panel:#fffdf4;--line:#7895a2;--fg:#263e50;--dim:#55717c;--pink:#e78ca5;--blue:#286b91}
+body{background:repeating-linear-gradient(45deg,#d8eae9 0 12px,#cce2e1 12px 24px);color:var(--fg);font-family:Verdana,Arial,sans-serif}
+h1,h2{color:#284d67}p,small{color:var(--dim)}
+a{color:#1d688c;text-decoration:underline;text-underline-offset:3px}
+button,.cta{background:#f5c44b;color:#283e4e;border:2px solid #c6952e;border-bottom:5px solid #906325;border-radius:6px;box-shadow:inset 2px 2px #fff1b8;padding:9px 15px;font-weight:900;text-decoration:none}
+button.muted,.cta.secondary{background:#387b9f;color:white;border-color:#235574;border-bottom-color:#173d58;box-shadow:inset 2px 2px #78bed9}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #e9903d;outline-offset:3px}
+.panel{background:#fffdf5;border:4px solid #769bac;border-radius:10px;box-shadow:5px 6px 0 #7198a555}
+.panel h2{border-bottom:3px solid #d7e8e9;padding-bottom:10px}
+.pixel{color:#ad652e;text-transform:uppercase}
+.tag{background:#d7eff4;color:#24607a;border:2px solid #8ab4c4;border-radius:6px;font-weight:900}
+input,select,textarea{background:white;color:#283f52;border:2px solid #8aabb5;border-bottom:3px solid #5a8391;border-radius:5px}
+.notice{background:#d4f1df;border:2px solid #87bf9c}
+.site-shell{max-width:1220px;background:#dcecea;min-height:100vh;border-left:5px solid #598499;border-right:5px solid #598499}
+.public-header{margin:0 -26px;padding:17px 28px;background:#235574;border-bottom:6px solid #173e5a;align-items:center}
+.public-header nav{gap:7px}
+.public-header nav a{display:inline-block;padding:8px 11px;background:#367da4;color:white;border:2px solid #77b5d5;border-bottom:4px solid #153c59;border-radius:6px;text-decoration:none;font-size:12px;font-weight:800}
+.public-header nav a:hover{background:#e6b84e;color:#263f56}
+.brand{color:#ffe48b;text-shadow:2px 2px #152c47}.brand small{color:#d4ebf1}.brand-icon{color:#ffe18c}
+.hero{margin:0 -26px;padding:35px 28px;background:linear-gradient(#8bcce2,#d2edf0);min-height:360px;position:relative}
+.hero h1{color:#254d68;text-shadow:2px 3px #ffffffb0;font-size:clamp(34px,5vw,58px)}
+.hero h1 span{color:#ad6233}
+.hero>div:first-child{background:#fffdf5;border:4px solid #4c7991;border-radius:18px;padding:24px;box-shadow:6px 8px #3d789755;position:relative;z-index:1}
+.hero>div:first-child:after{content:"";position:absolute;bottom:-20px;left:39px;border:12px solid transparent;border-top-color:#4c7991;border-left:0}
+.hero p{font-size:16px;color:#55717c}
+.hero-bits{color:#487087;font-weight:900}
+.pixel-hotel{border:8px solid #835742;background:#ffcc80;box-shadow:13px 13px #376e8855;transform:perspective(600px) rotateY(-6deg);border-radius:4px}
+.roof{background:#b65b61;color:#fff3bb;border-bottom:8px solid #744659;text-shadow:2px 2px #713947}
+.roof span{color:#ffe687}
+.windows i{border:5px solid #704b43;box-shadow:inset -8px -8px #83c5da;background:#eaf9d1}
+.hotel-doors{background:#356d8a;color:#ffe1a0;border-top:5px solid #704b43}
+.public-cards{padding-top:22px}
+.panel-icon{font-size:28px;background:#d8eff3;border:3px solid #85b7c5;width:max-content;border-radius:8px;padding:4px 10px;color:#b87936}
+.soft-note{background:#e4f0ed;color:#4c6e7c;border-color:#8fb4bd}
+.events li{border-color:#c9dce0}
+.calendar-panel{margin-top:25px}
+.calendar-controls button{background:#397c9f;color:white;border-color:#245774;border-bottom-color:#173f5d}
+.weekday{color:#245677}
+.day{background:#f7f3e7;border:2px solid #aac6c8;color:#2d566d}
+.day-empty{background:#dbeaec}
+.cal-entry.is-dj,.is-dj{background:#cbeaf6;color:#245874;border-left:4px solid #3289b1}
+.cal-entry.is-event,.is-event{background:#f6d4e9;color:#773f6c;border-left:4px solid #cb76ae}
+footer{border-color:#85abb7;color:#4c7181}
+.layout{grid-template-columns:230px 1fr;background:#d7e9e7;min-height:100vh}
+aside{background:#235777;border-right:6px solid #143c5a;color:white}
+aside h2,aside .pixel{color:#ffe3a1}
+aside nav a{display:block;padding:9px 11px;background:#35799b;color:white;border:2px solid #75b5ce;border-bottom:4px solid #153e5a;border-radius:6px;text-decoration:none;font-size:12px;font-weight:800}
+aside nav a:hover{background:#efbe58;color:#29445b}
+aside small{color:#d5e6ee}
+.layout main{background:repeating-linear-gradient(45deg,#d9eae8 0 12px,#d0e5e4 12px 24px)}
+.layout header{background:#fffef7;border:4px solid #6b97a9;border-radius:12px;margin-bottom:18px;padding:20px}
+.cards .panel{margin-bottom:14px}
+th{background:#d3eaf0;color:#2e6279}td{background:#fffdf6;border-color:#bfd2d6}
+.theme-neon{--panel:#fff7fc;--line:#8e70b1;--blue:#7440a3}
+.theme-midnight{--panel:#f4f5ff;--line:#7787b8;--blue:#455da2}
+@media(max-width:800px){.public-header,.hero{margin-left:-16px;margin-right:-16px}.public-header{padding:14px}.hero{padding:18px}.layout{display:block}aside{border-right:0;border-bottom:5px solid #173e5a}.pixel-hotel{transform:none}}
