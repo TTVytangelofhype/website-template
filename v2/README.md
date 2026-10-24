@@ -31,3 +31,9 @@ Log into `/login.php` as the owner and open **Fansite Settings** from the dashbo
 Owners can now use **Staff Management** in the dashboard to create accounts, choose staff roles, suspend/reactivate members and reset passwords. Account changes increment a session version, invalidating old login sessions. The owner account is protected against modification through the panel.
 
 For **new installations**, the primary schema includes `is_active` and `session_version`. For **existing V2 installs created before this update**, run `database/004_staff.sql` once using phpMyAdmin before deploying the updated authentication code. Do **not** run 004 on a fresh installation whose schema already contains those columns. Until you run the migration, the new login will fail. Temporary passwords must be shared securely; self-service password changes and email invites are future work.
+
+## Staff applications and rota (Phase 5)
+- Public `apply.php` accepts DJ/Event Host applications. It contains a CSRF token, basic honeypot and session cooldown. Apply additional IP-based abuse protection before a large public launch.
+- `applications.php` shows pending applications to owner/admin and the relevant radio/events manager. Accepting an application does **not** grant an account or login privileges. Owner can create staff credentials separately in Staff Management.
+- `rota.php` shows the current Monday–Sunday staff schedule with approved and pending booking status. Public calendar continues to show approved bookings only.
+- Fresh installations import `005_applications.sql` automatically. Existing V2 installs must run `database/005_applications.sql` through phpMyAdmin once.
