@@ -9,6 +9,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
  if ($found && (int)$found['is_active']===1 && password_verify((string)($_POST['password']??''), $found['password_hash'])) {
   session_regenerate_id(true);
   $_SESSION['user']=['id'=>(int)$found['id'],'username'=>$found['username'],'role'=>$found['role'],'session_version'=>(int)$found['session_version']];
+  $pdo->prepare('INSERT INTO staff_sessions(user_id,session_hash,ip_address,user_agent) VALUES (?,?,?,?)')->execute([$found['id'],hash('sha256',session_id()),(string)($_SERVER['REMOTE_ADDR']??'unknown'),mb_substr((string)($_SERVER['HTTP_USER_AGENT']??''),0,255)]);
   header('Location: dashboard.php');exit;
  }
  $error='Invalid username or password';
